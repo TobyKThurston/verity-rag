@@ -1,0 +1,42 @@
+# API + Postgres (pgvector) + Ollama. `docker compose up` runs all three.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: verity
+      POSTGRES_PASSWORD: verity
+      POSTGRES_DB: verity
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U verity"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    environment:
+      VERITY_PG_DSN: postgresql://verity:verity@db:5432/verity
+      VERITY_OLLAMA_BASE_URL: http://ollama:11434
+      VERITY_OTEL_CONSOLE_EXPORT: "true"
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
+  ollama:

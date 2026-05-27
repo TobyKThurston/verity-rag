@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install (core + dev)
+        run: pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check src evals tests
+
+      - name: Type-check (mypy --strict)
+        run: mypy
+
+      - name: Unit tests (pytest)
+        run: pytest
+        env:
+          VERITY_OTEL_CONSOLE_EXPORT: "false"
+
+      # The quality gate: the offline eval suite must clear every threshold.
+      # A retrieval or faithfulness regression fails the build here.
+      - name: Eval gate (offline, deterministic)
+        run: python -m evals.run_evals
+        env:
+          VERITY_OTEL_CONSOLE_EXPORT: "false"

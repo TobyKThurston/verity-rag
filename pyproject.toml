@@ -75,3 +75,4 @@ files = ["src/verity"]
 addopts = "-ra -q"
 testpaths = ["tests"]
 asyncio_mode = "auto"
+pythonpath = ["."]

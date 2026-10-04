@@ -36,5 +36,5 @@ def span(name: str, **attributes: object) -> Iterator[Span]:
     tracer = configure_tracing()
     with tracer.start_as_current_span(name) as current:
         for key, value in attributes.items():
-            current.set_attribute(key, value)  # type: ignore[arg-type]
+            current.set_attribute(key, value)
         yield current

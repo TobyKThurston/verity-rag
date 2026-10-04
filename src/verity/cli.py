@@ -10,8 +10,13 @@ from verity.pipeline import build_pipeline
 
 
 def _cmd_ingest_and_ask(directory: str, question: str, use_models: bool) -> int:
+    try:
+        docs = load_directory(directory)
+    except NotADirectoryError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
+
     pipeline = build_pipeline(use_models=use_models)
-    docs = load_directory(directory)
     chunks = pipeline.ingest(docs)
     print(f"Ingested {len(docs)} documents -> {len(chunks)} chunks", file=sys.stderr)
     answer = pipeline.ask(question)
